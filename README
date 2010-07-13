@@ -10,3 +10,5 @@ a curve that is approximated by a series of points. The initial form of the algo
 independently suggested in 1972 by Urs Ramer and 1973 by David Douglas and Thomas Peucker.
 (See the References for more details.) This algorithm is also known under the following names:
 the Ramer–Douglas–Peucker algorithm, the iterative end-point fit algorithm or the split-and-merge algorithm.
+
+The application is available here: http://kml.captico.com/
