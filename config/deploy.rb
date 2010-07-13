@@ -63,6 +63,7 @@ namespace :app do
   task :upgrade_bundler, :roles => :app, :except => { :no_release => true } do
     run "rvm use #{rvm} && gem up bundler"
   end
+
   task :setup do
     run "echo 'rvm use #{rvm}' > #{deploy_to}/.rvmrc"
     run "cd #{deploy_to} && rvm gemset create #{gemset}"
