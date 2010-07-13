@@ -1,0 +1,8 @@
+<%= @filename %>
+<%= @type %>
+<div id="kml-data"><!--<%= @filecontent %>--></div>
+<script>
+  $(document).ready(function() {
+    window.parent.KMLloaded($("#kml-data")[0].firstChild.nodeValue);
+  });
+</script>

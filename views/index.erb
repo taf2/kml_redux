@@ -1,0 +1,41 @@
+<script src="/douglas_peucker.js"></script>
+<script src="/kml_loader.js"></script>
+<script src="/test_points.js"></script>
+<script>
+  $(document).ready(function() {
+  if (window.Worker) {
+      $("#progress").progressbar({value:0});
+      var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
+      worker.postMessage({points:TestPoints,tolerance:0.001});
+      worker.onmessage = function(event) {
+        $("#progress").progressbar({value:event.data.progress});
+        if (event.data.status == 'done') {
+          var points = event.data.points;
+          var coords = [];
+          for (var i = 0, len = points.length; i < len; ++i) {
+            var point = points[i];
+            coords.push(point.latitude + "," + point.longitude + "," + point.altitude);
+          }
+          $("#kml-reduced").val(coords.join("\n"));
+        }
+      }
+      worker.onerror = function(error) {
+        console.log(error.message);
+      }
+    }
+    else {
+      // Alert user they're in an older browser and this won't work...
+    }
+  });
+</script>
+<form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data">
+  <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
+  <input type="submit" value="Upload KML"/>
+</form>
+<iframe style="width:1px;height:1px;visibility:hidden;" name="kml-loader" src="/blank.html"></iframe>
+
+<div id="progress"></div>
+<div id="kml_output">
+  <p>Copy the new KML File with reduced points</p>
+  <textarea style="width:100%;height:300px" id="kml-reduced"></textarea>
+</div>
