@@ -66,14 +66,14 @@
     }
   };
 
-  if (!window.Worker) { 
-    $("#kml-uploader").html("<strong>Sorry your browser doesn't support Web Workers. Try <a href='http://www.google.com/chrome'>Google Chrome</a> or <a href='http://www.mozilla.com/'>Mozilla Firefox</a></strong>");
-    throw("js workers not supported");
-  }
-
   var Map = null;
   var Graph = null;
   $(document).ready(function() {
+    if (!window.Worker) {
+      $("#kml-uploader-body").html("<strong>Sorry your browser doesn't support Web Workers. Try <a href='http://www.google.com/chrome'>Google Chrome</a> or <a href='http://www.mozilla.com/'>Mozilla Firefox</a></strong>");
+      throw("js workers not supported");
+    }
+
     Map = new MapControl();
     Graph = new GraphControl();
     $("#progress").hide();
@@ -101,12 +101,14 @@
   }
 </script>
 <form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data" style="width:350px;float:left;">
-  <div>
-    <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
-  </div>
-  <div>
-    <label for="tolerance">Tolerance:</label><input id="tolerance" type="text" size="8" name="tolerance" value="0.01"/>
-    <input type="submit" value="Upload KML"/>
+  <div id="kml-uploader-body">
+    <div>
+      <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
+    </div>
+    <div>
+      <label for="tolerance">Tolerance:</label><input id="tolerance" type="text" size="8" name="tolerance" value="0.01"/>
+      <input type="submit" value="Upload KML"/>
+    </div>
   </div>
 </form>
 <div id="description">
