@@ -8,6 +8,7 @@
     this.map = new google.maps.Map(this.mapNode, {zoom:7,
                                                   center:(new google.maps.LatLng(-34.397, 150.644)),
                                                   mapTypeId: google.maps.MapTypeId.ROADMAP});
+    this.polys = [];
   }
   MapControl.prototype = {
     plotPath: function(points) {
@@ -16,9 +17,15 @@
         // XXX: this always happens to me i get the longitude and latitude reversed!
         gpoints.push(new google.maps.LatLng(points[i].longitude, points[i].latitude));
       }
-      var poly = new google.maps.Polyline({path:gpoints, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2});
+      var poly = new google.maps.Polygon({path:gpoints, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2});
       poly.setMap(this.map);
       this.map.setCenter(gpoints[0]);
+      this.polys.push(poly);
+    },
+    clear: function() {
+      for (var i = 0, len = this.polys.length; i < len; ++i) {
+        this.polys[i].setMap(null);
+      }
     }
   };
 
@@ -42,8 +49,9 @@
       for (var i = 0, len = coordinates1.length; i < len; ++i) {
         xpoints.push(i*10);
       }
+      this.r.clear();
       var options = { shade:true,smooth:true, axis: '0 0 1 1', symbol: 'o'}
-      var lines = this.r.g.linechart(50,0, 450, 450, xpoints, [this.computeYPoints(coordinates1),this.computeYPoints(coordinates2)], options);
+      var lines = this.r.g.linechart(50, 50, 450, 450, xpoints, [this.computeYPoints(coordinates1),this.computeYPoints(coordinates2)], options);
       // pretty much straight from the demo
       var r = this.r;
       lines.hoverColumn(function () {
@@ -87,21 +95,33 @@
     }
   }
 </script>
-<form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data">
-  <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
-  <input type="submit" value="Upload KML"/>
+<form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data" style="width:350px;float:left;">
+  <div>
+    <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
+  </div>
+  <div>
+    <label for="tolerance">Tolerance:</label><input id="tolerance" type="text" size="8" name="tolerance" value="0.01"/>
+    <input type="submit" value="Upload KML"/>
+  </div>
 </form>
+<div style="float:left;width:650px">
+  The captico <a title="Keyhole Markup Language" href="http://en.wikipedia.org/wiki/Keyhole_Markup_Language">KML</a> compressor uses the <a href="http://www.fonant.com/demos/douglas_peucker/algorithm">Douglas-Peucker</a> Algorithm to reduce the number of 
+  vectors in your KML file. Adjust the tolerance to see how the polygon count is effected. Try this <a href="/california.kml">sample KML file</a>.  It's implemented in 100% Javascript and requires that your browser have <a href="http://www.whatwg.org/specs/web-workers/current-work/">Web Worker Support</a>.
+</div>
+<div style="clear:both"></div>
 <iframe style="width:1px;height:1px;visibility:hidden;" name="kml-loader" src="/blank.html"></iframe>
 
 <div id="progress"></div>
-<div id="display" style="position:relative;height:600px;min-width:1024px;display:none">
-  <div id="map-container" style="position:absolute;left:0px;top:0px;">
-    <h2>Map Preview Reduced Polygons</h2>
-    <div id="kml_map" style="height:500px;width:500px"></div>
-  </div>
-  <div id="graph-container" style="position:absolute;right:500px;top:0px;">
-    <h2>Reduction Curve</h2>
-    <div id="svg-graph" style="width:500px;height:500px"></div>
+<div id="display" style="position:relative;min-width:1084px;visibility:hidden">
+  <div style="height:600px">
+    <div id="map-container" style="position:absolute;left:0px;top:0px;">
+      <h2>Map Preview Reduced Polygons</h2>
+      <div id="kml_map" style="height:500px;width:500px"></div>
+    </div>
+    <div id="graph-container" style="position:absolute;left:500px;top:0px;">
+      <h2>Reduction Curve</h2>
+      <div id="svg-graph" style="width:550px;height:550px"></div>
+    </div>
   </div>
 
   <div id="kml_output">

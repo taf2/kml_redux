@@ -23,6 +23,7 @@ post '/upload' do
   @filename = filename
   @type     = params[:kml_file][:type]
   @filecontent = tempfile.read
+  @tolerance = params[:tolerance]
 
   erb :uploaded_kml
 end

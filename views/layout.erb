@@ -3,6 +3,9 @@
 <head>
   <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
   <link type="text/css" href="/css/redmond/jquery-ui-1.8.2.custom.css" rel="stylesheet"/>
+  <link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
+  <link type="text/css" href="/css/site.css" rel="stylesheet"/>
+
   <title>KML Smasher, reduce the size of your KML file for Google Maps and More!</title>
   <meta type="description" content="Reduce the size of your KML file by shrinking the file size by reducing the polygon count or coordinate resolution"/>
   <script src="/js/jquery-1.4.2.min.js"></script>
@@ -12,7 +15,13 @@
   <script src="/js/g.line-min.js"></script>
 </head>
 <body>
-  <%= flash[:error] || flash[:alert] %>
-  <%= yield %>
+  <div id="header"> 
+    <a id="logo" href="http://captico.com/">Captico</a>
+    <h1>KML Google Maps Compressor</h1>
+  </div>
+  <div id="content">
+    <%= flash[:error] || flash[:alert] %>
+    <%= yield %>
+  </div>
 </body>
 <html>

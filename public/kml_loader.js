@@ -34,7 +34,7 @@ function updateCoordinateText(doc,coordinateNode,points) {
   coordinateNode.appendChild(text);
 }
 
-function reduceCoordinateSet(doc,coordinate,count, totalCoordinates, cb) {
+function reduceCoordinateSet(tolerance, doc,coordinate,count, totalCoordinates, cb) {
   var points = reducePointsForCoordinate(coordinate);
   var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
 
@@ -54,10 +54,10 @@ function reduceCoordinateSet(doc,coordinate,count, totalCoordinates, cb) {
     console.error(error.message);
   }
 
-  worker.postMessage({points:points,tolerance:0.1});
+  worker.postMessage({points:points,tolerance:tolerance});
 }
 
-function reduceKMLPoints(kml) {
+function reduceKMLPoints(tolerance, kml) {
   var parser = new DOMParser();  
   var doc = parser.parseFromString(kml, "text/xml");
   var coordinates = doc.getElementsByTagName("coordinates");
@@ -72,7 +72,7 @@ function reduceKMLPoints(kml) {
     if (original_points) { originalCoordinates.push(original_points); }
 
     if (count < coordinates.length) {
-      reduceCoordinateSet(doc, coordinates[count], count, coordinates.length, iteration);
+      reduceCoordinateSet(tolerance, doc, coordinates[count], count, coordinates.length, iteration);
     }
     else {
       // done
@@ -85,6 +85,9 @@ function reduceKMLPoints(kml) {
       } catch(e) { console.error(e); }
       // draw the coordinates before and after magnitudes
       Graph.plot(reducedCoordinates, originalCoordinates,  "#00aaff", "#ffaa00");
+      $("#progress").fadeOut(2000, function() {
+        $("#kml-uploader").show();
+      });
     }
     ++count;
   }
@@ -93,11 +96,13 @@ function reduceKMLPoints(kml) {
   return doc;
 }
 
-function KMLloaded(kml) {
+function KMLloaded(tolerance, kml) {
   $("#progress").show();
   $("#display").show();
+  $("#display").css({visibility:'visible'});
   $("#progress").progressbar({value:0});
   $("#kml-uploader").hide();
+  Map.clear();
 
-  reduceKMLPoints(kml);
+  reduceKMLPoints(tolerance, kml);
 }
