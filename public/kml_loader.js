@@ -34,7 +34,7 @@ function updateCoordinateText(doc,coordinateNode,points) {
   coordinateNode.appendChild(text);
 }
 
-function reduceCoordinateSet(doc,coordinate,count,totalCoordinates,cb) {
+function reduceCoordinateSet(doc,coordinate,count, totalCoordinates, cb) {
   var points = reducePointsForCoordinate(coordinate);
   var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
 
@@ -47,7 +47,7 @@ function reduceCoordinateSet(doc,coordinate,count,totalCoordinates,cb) {
     if (event.data.status == 'done') {
       //console.log(points.length + " -> " + event.data.total + " <= " + totalCoordinates );
       updateCoordinateText(doc,coordinate,event.data.points);
-      cb(coordinate,event.data.points);
+      cb(coordinate,event.data.points,points);
     }
   }
   worker.onerror = function(error) {
@@ -63,8 +63,13 @@ function reduceKMLPoints(kml) {
   var coordinates = doc.getElementsByTagName("coordinates");
   var count = 0;
 
-  var iteration = function(coordinate,points) {
-    if (points) { Map.plotPath(points); } // plot to google maps
+  // build array to compare against for graph
+  var originalCoordinates = [];
+  var reducedCoordinates = [];
+
+  var iteration = function(coordinate, points, original_points) {
+    if (points) { Map.plotPath(points); reducedCoordinates.push(points); } // plot to google maps
+    if (original_points) { originalCoordinates.push(original_points); }
 
     if (count < coordinates.length) {
       reduceCoordinateSet(doc, coordinates[count], count, coordinates.length, iteration);
@@ -78,6 +83,8 @@ function reduceKMLPoints(kml) {
         var xml = serializer.serializeToString(doc);
         $("#kml-reduced").val(xml);
       } catch(e) { console.error(e); }
+      // draw the coordinates before and after magnitudes
+      Graph.plot(reducedCoordinates, originalCoordinates,  "#00aaff", "#ffaa00");
     }
     ++count;
   }
@@ -88,6 +95,7 @@ function reduceKMLPoints(kml) {
 
 function KMLloaded(kml) {
   $("#progress").show();
+  $("#display").show();
   $("#progress").progressbar({value:0});
   $("#kml-uploader").hide();
 

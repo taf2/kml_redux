@@ -5,7 +5,7 @@
 <script>
   function MapControl() {
     this.mapNode = document.getElementById("kml_map");
-    this.map = new google.maps.Map(this.mapNode, {zoom:8,
+    this.map = new google.maps.Map(this.mapNode, {zoom:7,
                                                   center:(new google.maps.LatLng(-34.397, 150.644)),
                                                   mapTypeId: google.maps.MapTypeId.ROADMAP});
   }
@@ -23,21 +23,53 @@
   };
 
   function GraphControl() {
-    this.r = Raphael("#svg-graph");
+    this.r = Raphael("svg-graph");
+    this.r.g.txtattr.font = "12px 'Fontin Sans', Fontin-Sans, sans-serif";
+    //this.r.g.text(100, 10, "Original KML Coordinate");
+    //this.r.g.text(100, 30, "Reduced KML Coordinate");
   }
   GraphControl.prototype = {
+    
+    computeYPoints: function(coordinates) {
+      var ypoints = [];
+      for (var i = 0, len = coordinates.length; i < len; ++i) {
+        ypoints.push(coordinates[i].length);
+      }
+      return ypoints;
+    },
+    plot: function(coordinates1,  coordinates2, color1, color2) {
+      var xpoints = [];
+      for (var i = 0, len = coordinates1.length; i < len; ++i) {
+        xpoints.push(i*10);
+      }
+      var options = { shade:true,smooth:true, axis: '0 0 1 1', symbol: 'o'}
+      var lines = this.r.g.linechart(50,0, 450, 450, xpoints, [this.computeYPoints(coordinates1),this.computeYPoints(coordinates2)], options);
+      // pretty much straight from the demo
+      var r = this.r;
+      lines.hoverColumn(function () {
+        this.tags = r.set();
+        for (var i = 0, ii = this.y.length; i < ii; i++) {
+          this.tags.push(r.g.tag(this.x, this.y[i], this.values[i], 160, 10).insertBefore(this).attr([{fill: "#fff"}, {fill: this.symbols[i].attr("fill")}]));
+        }
+      }, function () {
+        this.tags && this.tags.remove();
+      });
+      lines.symbols.attr({r: 3});
+    }
   };
 
   var Map = null;
+  var Graph = null;
   $(document).ready(function() {
     Map = new MapControl();
+    Graph = new GraphControl();
     $("#progress").hide();
   });
 
   function testWorker() {
     $("#progress").progressbar({value:0});
     var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
-    worker.postMessage({points:TestPoints,tolerance:0.001});
+    worker.postMessage({points:TestPoints,tolerance:0.00001});
     worker.onmessage = function(event) {
       $("#progress").progressbar({value:event.data.progress});
       if (event.data.status == 'done') {
@@ -62,18 +94,18 @@
 <iframe style="width:1px;height:1px;visibility:hidden;" name="kml-loader" src="/blank.html"></iframe>
 
 <div id="progress"></div>
-<div id="display" style="position:relative;height:600px;min-width:1024px;">
+<div id="display" style="position:relative;height:600px;min-width:1024px;display:none">
   <div id="map-container" style="position:absolute;left:0px;top:0px;">
-    <h2>Map Preview</h2>
+    <h2>Map Preview Reduced Polygons</h2>
     <div id="kml_map" style="height:500px;width:500px"></div>
   </div>
-  <div id="graph-container" style="position:absolute;right:0px;top:0px;">
+  <div id="graph-container" style="position:absolute;right:500px;top:0px;">
     <h2>Reduction Curve</h2>
     <div id="svg-graph" style="width:500px;height:500px"></div>
   </div>
-</div>
 
-<div id="kml_output">
-  <p>Copy the new KML File with reduced points</p>
-  <textarea style="width:100%;height:300px" id="kml-reduced"></textarea>
+  <div id="kml_output">
+    <p>Copy the new KML File with reduced points</p>
+    <textarea style="width:100%;height:300px" id="kml-reduced"></textarea>
+  </div>
 </div>
