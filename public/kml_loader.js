@@ -97,6 +97,7 @@ function reduceKMLPoints(tolerance, kml) {
 }
 
 function KMLloaded(tolerance, kml) {
+  if (!kml.match(/<kml/) || !kml.match(/<coordinates/)) { alert("Make sure you uploaded a valid KML file"); throw("error"); }
   $("#progress").show();
   $("#display").show();
   $("#display").css({visibility:'visible'});
@@ -104,5 +105,9 @@ function KMLloaded(tolerance, kml) {
   $("#kml-uploader").hide();
   Map.clear();
 
-  reduceKMLPoints(tolerance, kml);
+  try {
+    reduceKMLPoints(tolerance, kml);
+  } catch(e) {
+    alert("Error while trying to parse that file. Make sure it's a valid KML file");
+  }
 }
