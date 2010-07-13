@@ -57,7 +57,7 @@ namespace :app do
   task :bundle, :roles => :app, :except => { :no_release => true } do
     run "echo $PATH"
     run "echo 'rvm use #{rvm}' > #{current_path}/.rvmrc"
-    run "cd #{current_path} && bundle update --gemfile=Gemfile"
+    run "cd #{current_path} && bundle update"
   end
 
   task :upgrade_bundler, :roles => :app, :except => { :no_release => true } do
