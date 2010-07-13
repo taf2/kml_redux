@@ -1,11 +1,8 @@
 require 'rubygems'
 require 'sinatra/base'
-require "rack-flash"
 
 class Application < Sinatra::Base
   set :public, 'public'
-  enable :sessions
-  use Rack::Flash, :sweep => true
 
   get '/' do
     erb :index
@@ -15,8 +12,7 @@ class Application < Sinatra::Base
   post '/upload' do
    
     unless params[:kml_file] and (tempfile=params[:kml_file][:tempfile]) and (filename=params[:kml_file][:filename])
-      flash[:error] = "No file selected -> #{params.inspect}"
-      redirect '/'
+      redirect '/?msg="missing-file"'
       return
     end
     @filename = filename

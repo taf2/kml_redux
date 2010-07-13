@@ -23,9 +23,9 @@ task :production do
   set :gemset, "kml"
   set :rvm, "ree@#{gemset}"
 
-  role :web, "slice6"
-  role :app, "slice6"
-  role :db, "slice6", :primary => true
+  role :web, "slice6:222"
+  role :app, "slice6:222"
+  role :db, "slice6:222", :primary => true
   set :stage, "production"
 
 end
