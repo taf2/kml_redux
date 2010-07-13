@@ -47,7 +47,7 @@ function reduceCoordinateSet(doc,coordinate,count,totalCoordinates,cb) {
     if (event.data.status == 'done') {
       //console.log(points.length + " -> " + event.data.total + " <= " + totalCoordinates );
       updateCoordinateText(doc,coordinate,event.data.points);
-      cb();
+      cb(coordinate,event.data.points);
     }
   }
   worker.onerror = function(error) {
@@ -63,14 +63,16 @@ function reduceKMLPoints(kml) {
   var coordinates = doc.getElementsByTagName("coordinates");
   var count = 0;
 
-  var iteration = function() {
+  var iteration = function(coordinate,points) {
+    if (points) { Map.plotPath(points); } // plot to google maps
+
     if (count < coordinates.length) {
       reduceCoordinateSet(doc, coordinates[count], count, coordinates.length, iteration);
     }
     else {
       // done
       $("#progress").progressbar({value:100});
-      // save new document
+      // save document to textarea
       try {
         var serializer = new XMLSerializer();
         var xml = serializer.serializeToString(doc);
@@ -85,6 +87,7 @@ function reduceKMLPoints(kml) {
 }
 
 function KMLloaded(kml) {
+  $("#progress").show();
   $("#progress").progressbar({value:0});
   $("#kml-uploader").hide();
 

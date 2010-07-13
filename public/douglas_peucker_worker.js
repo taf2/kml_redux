@@ -25,7 +25,7 @@ onmessage = function(event) {
   // send the final message
   var pruned = [];
   for (var i = 0, len = results.length; i < len; ++i) {
-    if (results[i]) { pruned.push(results[i]); }
+    if (results[i] && results[i].latitude && results[i].longitude) { pruned.push(results[i]); }
   }
   postMessage({points:pruned,progress:100,total:total,status:'done'});
 };

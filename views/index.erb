@@ -1,32 +1,59 @@
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
 <script src="/douglas_peucker.js"></script>
 <script src="/kml_loader.js"></script>
 <script src="/test_points.js"></script>
 <script>
+  function MapControl() {
+    this.mapNode = document.getElementById("kml_map");
+    this.map = new google.maps.Map(this.mapNode, {zoom:8,
+                                                  center:(new google.maps.LatLng(-34.397, 150.644)),
+                                                  mapTypeId: google.maps.MapTypeId.ROADMAP});
+  }
+  MapControl.prototype = {
+    plotPath: function(points) {
+      var gpoints = [];
+      for (var i = 0, len = points.length; i < len; ++i) {
+        // XXX: this always happens to me i get the longitude and latitude reversed!
+        gpoints.push(new google.maps.LatLng(points[i].longitude, points[i].latitude));
+      }
+      var poly = new google.maps.Polyline({path:gpoints, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2});
+      poly.setMap(this.map);
+      this.map.setCenter(gpoints[0]);
+    }
+  };
+
+  function GraphControl() {
+    this.r = Raphael("#svg-graph");
+  }
+  GraphControl.prototype = {
+  };
+
+  var Map = null;
   $(document).ready(function() {
-  if (window.Worker) {
-      $("#progress").progressbar({value:0});
-      var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
-      worker.postMessage({points:TestPoints,tolerance:0.001});
-      worker.onmessage = function(event) {
-        $("#progress").progressbar({value:event.data.progress});
-        if (event.data.status == 'done') {
-          var points = event.data.points;
-          var coords = [];
-          for (var i = 0, len = points.length; i < len; ++i) {
-            var point = points[i];
-            coords.push(point.latitude + "," + point.longitude + "," + point.altitude);
-          }
-          $("#kml-reduced").val(coords.join("\n"));
-        }
-      }
-      worker.onerror = function(error) {
-        console.log(error.message);
-      }
-    }
-    else {
-      // Alert user they're in an older browser and this won't work...
-    }
+    Map = new MapControl();
+    $("#progress").hide();
   });
+
+  function testWorker() {
+    $("#progress").progressbar({value:0});
+    var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
+    worker.postMessage({points:TestPoints,tolerance:0.001});
+    worker.onmessage = function(event) {
+      $("#progress").progressbar({value:event.data.progress});
+      if (event.data.status == 'done') {
+        var points = event.data.points;
+        var coords = [];
+        for (var i = 0, len = points.length; i < len; ++i) {
+          var point = points[i];
+          coords.push(point.latitude + "," + point.longitude + "," + point.altitude);
+        }
+        $("#kml-reduced").val(coords.join("\n"));
+      }
+    }
+    worker.onerror = function(error) {
+      console.log(error.message);
+    }
+  }
 </script>
 <form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data">
   <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
@@ -35,6 +62,17 @@
 <iframe style="width:1px;height:1px;visibility:hidden;" name="kml-loader" src="/blank.html"></iframe>
 
 <div id="progress"></div>
+<div id="display" style="position:relative;height:600px;min-width:1024px;">
+  <div id="map-container" style="position:absolute;left:0px;top:0px;">
+    <h2>Map Preview</h2>
+    <div id="kml_map" style="height:500px;width:500px"></div>
+  </div>
+  <div id="graph-container" style="position:absolute;right:0px;top:0px;">
+    <h2>Reduction Curve</h2>
+    <div id="svg-graph" style="width:500px;height:500px"></div>
+  </div>
+</div>
+
 <div id="kml_output">
   <p>Copy the new KML File with reduced points</p>
   <textarea style="width:100%;height:300px" id="kml-reduced"></textarea>
