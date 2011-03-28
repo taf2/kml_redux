@@ -94,12 +94,14 @@ function reduceKMLPoints(tolerance, kml) {
   var originalCoordinates = [];
   var reducedCoordinates = [];
 
-  // spawn 4 workers
-  for (var i = 0; i < 4; ++i) {
-    var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
-    gWorkerPool.push(worker);
+  if (gWorkerPool.empty()) {
+    // spawn 4 workers
+    for (var i = 0; i < 4; ++i) {
+      var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
+      gWorkerPool.push(worker);
+    }
+    console.log("workers all started and waiting to process " + coordinates.length + " coordinates");
   }
-  console.log("workers all started and waiting to process " + coordinates.length + " coordinates");
 
   // start iterating 
   var iteration = function(coordinate, points, original_points) {
