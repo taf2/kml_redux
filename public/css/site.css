@@ -6,7 +6,7 @@ body {
   border-bottom:1px solid #ccc;
   clear:both;
 }
-#header h1 { float:left; margin-left:20px; font-family: 'Josefin Sans Std Light', arial, serif; }
+#header h1 { float:left; margin-left:20px; font-family: 'Cuprum', arial, serif; }
 #logo {
   background:transparent url(/images/logo.png) no-repeat;
   display:block;
@@ -15,4 +15,4 @@ body {
   height:88px;
   float:left;
 }
-#content { padding:10px; font-family: 'Josefin Sans Std Light', arial, serif; font-size:18px; }
+#content { padding:10px; font-family: 'Cuprum', arial, serif; font-size:18px; }

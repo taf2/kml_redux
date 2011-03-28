@@ -1,0 +1,15 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    rack (1.2.1)
+    sinatra (1.0)
+      rack (>= 1.0)
+    unicorn (1.1.1)
+      rack
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sinatra
+  unicorn
