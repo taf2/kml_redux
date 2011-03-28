@@ -17,7 +17,9 @@ function reducePointsForCoordinate(coordinate) {
   var groups = allcoords.replace(/,\s*/g,',').split(/\s/);
   for (var i = 0, len = groups.length; i < len; ++i) {
     var coords = groups[i].split(',');
-    points.push(new DP.GeoPoint(coords[0],coords[1],coords[2]));
+    if (coords[0] && coords[1] && coords[2]) {
+      points.push(new DP.GeoPoint(coords[0],coords[1],coords[2]));
+    }
   }
   //console.log("reduced points in : " + ((new Date().getTime()) - time.getTime()));
   return points;
@@ -122,28 +124,31 @@ function reduceKMLPoints(tolerance, kml) {
     }
     else {
       // done
-      console.log("done");
+      //console.log("done");
 
       $("#progress").progressbar({value:100});
 
       // save document to textarea
       try {
-        console.log("serializer starting");
         var serializer = new XMLSerializer();
         var xml = serializer.serializeToString(doc);
         $("#kml-reduced").val(xml);
       } catch(e) { console.error(e); }
 
-      /*
       // For larger data sets this will run too long...
       setTimeout(function() {
         var time = new Date();
         console.log("plotting");
         // draw the coordinates before and after magnitudes
-        Graph.plot(reducedCoordinates, originalCoordinates,  "#00aaff", "#ffaa00");
+        if (reducedCoordinates.length > 1 && originalCoordinates.length > 1) {
+          Graph.plot(reducedCoordinates, originalCoordinates,  "#00aaff", "#ffaa00");
+        }
+        else if (reducedCoordinates.length == 1) {
+          $("#svg-graph").html("One coordinate, point reduction: " + reducedCoordinates[0].length + " from " + originalCoordinates[0].length);
+        }
         console.log("plotted in: " + ((new Date().getTime()) - time.getTime()));
       }, 1000);
-      */
+      
       $("#progress").fadeOut(2000, function() { $("#kml-uploader").show(); });
     }
     ++count;

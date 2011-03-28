@@ -78,26 +78,6 @@
     $("#progress").hide();
   });
 
-  function testWorker() {
-    $("#progress").progressbar({value:0});
-    var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
-    worker.postMessage({points:TestPoints,tolerance:0.00001});
-    worker.onmessage = function(event) {
-      $("#progress").progressbar({value:event.data.progress});
-      if (event.data.status == 'done') {
-        var points = event.data.points;
-        var coords = [];
-        for (var i = 0, len = points.length; i < len; ++i) {
-          var point = points[i];
-          coords.push(point.latitude + "," + point.longitude + "," + point.altitude);
-        }
-        $("#kml-reduced").val(coords.join("\n"));
-      }
-    }
-    worker.onerror = function(error) {
-      console.log(error.message);
-    }
-  }
 </script>
 <form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data" style="width:350px;float:left;">
   <div id="kml-uploader-body">
