@@ -2,6 +2,7 @@
 <script src="/douglas_peucker.js"></script>
 <script src="/kml_loader.js"></script>
 <script>
+
   function MapControl() {
     this.mapNode = document.getElementById("kml_map");
     this.map = new google.maps.Map(this.mapNode, {zoom:7,
@@ -9,11 +10,11 @@
                                                   mapTypeId: google.maps.MapTypeId.ROADMAP});
     this.polys = [];
   }
+  
   MapControl.prototype = {
     plotPath: function(points) {
       var gpoints = [];
       for (var i = 0, len = points.length; i < len; ++i) {
-        // XXX: this always happens to me i get the longitude and latitude reversed!
         gpoints.push(new google.maps.LatLng(points[i].longitude, points[i].latitude));
       }
       var poly = new google.maps.Polygon({path:gpoints, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2});
@@ -28,97 +29,54 @@
     }
   };
 
-  function GraphControl() {
-    this.r = Raphael("svg-graph");
-    this.r.g.txtattr.font = "12px 'Fontin Sans', Fontin-Sans, sans-serif";
-    //this.r.g.text(100, 10, "Original KML Coordinate");
-    //this.r.g.text(100, 30, "Reduced KML Coordinate");
-  }
-  GraphControl.prototype = {
-    
-    computeYPoints: function(coordinates) {
-      var ypoints = [];
-      for (var i = 0, len = coordinates.length; i < len; ++i) {
-        ypoints.push(coordinates[i].length);
-      }
-      return ypoints;
-    },
-    plot: function(coordinates1,  coordinates2, color1, color2) {
-      var xpoints = [];
-      for (var i = 0, len = coordinates1.length; i < len; ++i) {
-        xpoints.push(i*10);
-      }
-      this.r.clear();
-      var options = { shade:true,smooth:true, axis: '0 0 1 1', symbol: 'o'}
-      var lines = this.r.g.linechart(50, 50, 450, 450, xpoints, [this.computeYPoints(coordinates1),this.computeYPoints(coordinates2)], options);
-      // pretty much straight from the demo
-      var r = this.r;
-      lines.hoverColumn(function () {
-        this.tags = r.set();
-        for (var i = 0, ii = this.y.length; i < ii; i++) {
-          this.tags.push(r.g.tag(this.x, this.y[i], this.values[i], 160, 10).insertBefore(this).attr([{fill: "#fff"}, {fill: this.symbols[i].attr("fill")}]));
-        }
-      }, function () {
-        this.tags && this.tags.remove();
-      });
-      lines.symbols.attr({r: 3});
-    }
-  };
-
   var Map = null;
-  var Graph = null;
   $(function() {
     if (!window.Worker) {
       $("#kml-uploader-body").html("<strong>Sorry your browser doesn't support Web Workers. Try <a href='http://www.google.com/chrome'>Google Chrome</a> or <a href='http://www.mozilla.com/'>Mozilla Firefox</a></strong>");
       throw("js workers not supported");
     }
-
     Map = new MapControl();
-    Graph = new GraphControl();
-    $("#progress").hide();
   });
 
 </script>
-<form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data" style="width:350px;float:left;">
-  <div id="kml-uploader-body">
-    <div>
-      <label for="kml-file">KML File:</label><input id="kml-file" type="file" name="kml_file"/>
-    </div>
-    <div>
-      <label for="tolerance">Tolerance:</label><input id="tolerance" type="text" size="8" name="tolerance" value="0.01"/>
-      <input type="submit" value="Upload KML"/>
-    </div>
-  </div>
-  
-</form>
-<div id="description">
-  The Captico <a title="Keyhole Markup Language" href="http://en.wikipedia.org/wiki/Keyhole_Markup_Language">KML</a> compressor uses the <a href="http://www.fonant.com/demos/douglas_peucker/algorithm">Douglas-Peucker</a> Algorithm to reduce the number of 
-  vectors in your KML file. Adjust the tolerance to see how the polygon count is effected. Try this <a href="/california.kml">sample KML file</a>.  It's <a href="http://github.com/taf2/kml_redux">open source</a> and mostly Javascript requiring your browser have <a href="http://www.whatwg.org/specs/web-workers/current-work/">Web Workers</a>.
-  <br/>
-  <iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fkml.captico.com%2F&amp;layout=standard&amp;show_faces=true&amp;width=450&amp;action=like&amp;font=arial&amp;colorscheme=light&amp;height=80" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:80px;" allowTransparency="true"></iframe>
-</div>
-<div style="clear:both"></div>
-<iframe style="width:1px;height:1px;visibility:hidden;" name="kml-loader" src="/blank.html"></iframe>
 
-<div id="progress"></div>
-<div id="display" style="position:relative;min-width:1084px;visibility:hidden">
-  <div style="height:600px">
-    <div id="map-container" style="position:absolute;left:0px;top:0px;">
-      <h2>Map Preview Reduced Polygons</h2>
-      <div id="kml_map" style="height:500px;width:500px"></div>
-    </div>
-    <div id="graph-container" style="position:absolute;left:500px;top:0px;">
-      <h2>Reduction Curve</h2>
-      <div id="svg-graph" style="width:550px;height:550px"></div>
-      <p style="padding:0;margin:0;">
-        <small>The X-Axis represents each polygon or &lt;coordinates&gt; tag and the Y-Axis represents the number of points per polygon.</small>
-        <a style="float:right" href="http://raphaeljs.com/">Graphs by Raphaël</a>
-      </p>
-    </div>
+<div id="kml_form">
+
+	<form id="kml-uploader" target="kml-loader" method="post" action="/upload" enctype="multipart/form-data">
+		<div id="kml-uploader-body">
+			<div class="form-group">
+			  <label for="exampleInputFile">KML Data</label><br/>
+			  <input id="kml-file" type="file" name="kml_file">
+			</div>
+		  <div class="form-group">
+		    <label for="tolerance">Tolerance</label><br/>
+		    <input type="text" class="form-control" name="tolerance" value="0.01">
+		  </div>
+		  <div class="form-group">
+		    <label for="tolerance">Fixed Decimal Places, Lat/Lon</label><br/>
+		    <input type="text" class="form-control" id="dp-rounding" name="rounding" value="5">
+		  </div>
+		  <div class="form-group">
+		  	<input type="submit" class="btn btn-success btn-lg" value="Process"/>
+		  </div>
+	  </div>
+	</form>
+
+</div>
+
+<iframe id="kml-loader" name="kml-loader" src="/blank.html"></iframe>
+
+<div id="display">
+    
+  <div id="map-container">
+    <h2>Live Preview - <span id="xml-size">Parsing</span> KML</h2>
+    <div id="kml_map"></div>
   </div>
 
   <div id="kml_output">
-    <p>Copy the new KML File with reduced points</p>
-    <textarea style="width:100%;height:300px" id="kml-reduced"></textarea>
+    <h2>Simplified KML</h2>
+    <textarea class="form-control" rows="10" id="kml-reduced"></textarea>
   </div>
 </div>
+
+

@@ -1,6 +1,0 @@
-/*
- * design elements
- */
-(function() {
-  // icons
-})();

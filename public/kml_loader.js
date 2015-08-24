@@ -2,8 +2,34 @@ if (!Array.prototype.empty) {
   Array.prototype.empty = function() { return this.length == 0; }
 }
 
+function getUTF8Length(string) {
+    var utf8length = 0;
+    for (var n = 0; n < string.length; n++) {
+        var c = string.charCodeAt(n);
+        if (c < 128) {
+            utf8length++;
+        }
+        else if((c > 127) && (c < 2048)) {
+            utf8length = utf8length+2;
+        }
+        else {
+            utf8length = utf8length+3;
+        }
+    }
+    return utf8length;
+}
+
+function formatBytes(bytes,decimals) {
+   if(bytes == 0) return '0 Byte';
+   var k = 1000;
+   var dm = decimals + 1 || 3;
+   var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+   var i = Math.floor(Math.log(bytes) / Math.log(k));
+   return (bytes / Math.pow(k, i)).toPrecision(dm) + ' ' + sizes[i];
+}
+
 function reducePointsForCoordinate(coordinate) {
-  //var time = new Date();
+  var time = new Date();
   var points = [];
   var point = []; // build until we have 3, [lat, lng, alt]
   var childNodes = coordinate.childNodes;
@@ -35,10 +61,10 @@ function updateCoordinateText(doc,coordinateNode,points) {
   for (var i = 0, len = points.length; i < len; ++i) {
     var point = points[i];
     if (point && point.latitude && point.longitude) {
-      coords.push(point.latitude + "," + point.longitude + "," + point.altitude);
+      coords.push(point.latitude + "," + point.longitude);
     }
   }
-  var text = doc.createTextNode(coords.join("\n"));
+  var text = doc.createTextNode(coords.join(" "));
   coordinateNode.appendChild(text);
 }
 
@@ -46,14 +72,21 @@ var gWorkerPool = [];
 var gQueuedWork = [];
 
 function reduceCoordinateSet(tolerance, doc, coordinate,count, totalCoordinates, cb) {
+
   var points = reducePointsForCoordinate(coordinate);
+
   //console.log("processing: " + points.length + " points");
-  if (points.empty()) { console.log("no points in coordinate?"); cb(); return; }
+
+  if (points.empty()) {  cb(); return; }
 
   if (gWorkerPool.empty()) {
-    console.log("all workers busy queue work");
+
+    //console.log("all workers busy queue work");
+
     gQueuedWork.push( {tolerance: tolerance, doc: doc, coordinate: coordinate, count: count, totalCoordinates: totalCoordinates, cb: cb} );
+
     return; // wait for workers to free up
+
   }
 
   //console.log("worker pool: " + gWorkerPool.length);
@@ -61,13 +94,18 @@ function reduceCoordinateSet(tolerance, doc, coordinate,count, totalCoordinates,
   var worker = gWorkerPool.pop();
 
   worker.onmessage = function(event) {
-    var percentOfTotal = (event.data.progress* (count/totalCoordinates));
-    if ($("#progress").progressbar("value") < percentOfTotal) {
-      $("#progress").progressbar({value:percentOfTotal});
-    }
 
     if (event.data.status == 'done') {
       //console.log(points.length + " -> " + event.data.total + " <= " + totalCoordinates );
+      // Should we round here?
+
+      $(event.data.points).each(function(i,o) {
+      	latfloat = parseFloat(o.latitude);
+      	o.latitude = latfloat.toFixed(parseInt($("#dp-rounding").val()));
+      	lonfloat = parseFloat(o.longitude);
+      	o.longitude = lonfloat.toFixed(parseInt($("#dp-rounding").val()));
+      });
+
       updateCoordinateText(doc,coordinate,event.data.points);
       cb(coordinate,event.data.points,points);
       gWorkerPool.push(worker);
@@ -100,61 +138,54 @@ function reduceKMLPoints(tolerance, kml) {
       var worker = new Worker("/douglas_peucker_worker.js?cc=" + (new Date()).getTime());
       gWorkerPool.push(worker);
     }
-    console.log("workers all started and waiting to process " + coordinates.length + " coordinates");
+    //console.log("workers all started and waiting to process " + coordinates.length + " coordinates");
   }
 
   // start iterating 
   var iteration = function(coordinate, points, original_points) {
+
     if (points) { Map.plotPath(points); reducedCoordinates.push(points); } // plot to google maps
+
     if (original_points) { originalCoordinates.push(original_points); }
 
     if (count < coordinates.length) {
+
       //console.log("call reducedCoordinates");
+
       reduceCoordinateSet(tolerance, doc, coordinates[count], count, coordinates.length, iteration);
     }
+
     else if (gQueuedWork.length > 0) {
+
       //console.log("processing queued work: " + gQueuedWork.length);
       
       if (gWorkerPool.length) {
         var work = gQueuedWork.pop();
         reduceCoordinateSet(work.tolerance, work.doc, work.coordinates[work.count], work.count, work.coordinates.length, iteration);
-      }
-      else {
+      } else {
         setTimeout(iteration, 500); // spin for a bit until a worker free's up
       }
 
-    }
-    else {
+    } else {
       // done
-      //console.log("done");
-
-      $("#progress").progressbar({value:100});
-
       // save document to textarea
       try {
+        
         var serializer = new XMLSerializer();
         var xml = serializer.serializeToString(doc);
+        
         $("#kml-reduced").val(xml);
+        $("#xml-size").text(formatBytes(getUTF8Length(xml)));
+        $("#kml_output").show();
+
       } catch(e) { console.error(e); }
 
-      // For larger data sets this will run too long...
-      setTimeout(function() {
-        var time = new Date();
-        console.log("plotting");
-        // draw the coordinates before and after magnitudes
-        if (reducedCoordinates.length > 1 && originalCoordinates.length > 1) {
-          Graph.plot(reducedCoordinates, originalCoordinates,  "#00aaff", "#ffaa00");
-        }
-        else if (reducedCoordinates.length == 1) {
-          $("#svg-graph").html("One coordinate, point reduction: " + reducedCoordinates[0].length + " from " + originalCoordinates[0].length);
-        }
-        console.log("plotted in: " + ((new Date().getTime()) - time.getTime()));
-      }, 1000);
-      
-      $("#progress").fadeOut(2000, function() { $("#kml-uploader").show(); });
     }
+
     ++count;
+
   }
+
   iteration();
 
   return doc;
@@ -164,17 +195,9 @@ function reduceKMLPoints(tolerance, kml) {
 function KMLloaded(tolerance, kml) {
   $("#kml-reduced").val(kml);
   if (!kml.match(/<kml/) || !kml.match(/<coordinates/)) { alert("Make sure you uploaded a valid KML file"); throw("error"); }
-  $("#progress").show();
   $("#display").show();
   $("#display").css({visibility:'visible'});
-  $("#progress").progressbar({value:0});
-  $("#kml-uploader").hide();
+  $("#kml_output").hide();
   Map.clear();
-
-//  try {
-    reduceKMLPoints(tolerance, kml);
-//  } catch(e) {
-//    console.error(e);
-//    alert("Error while trying to parse that file. Make sure it's a valid KML file");
-//  }
+  reduceKMLPoints(tolerance, kml);
 }

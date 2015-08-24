@@ -2,17 +2,39 @@ body {
   margin:0; padding:0;
 }
 #header {
-  height:120px;
   border-bottom:1px solid #ccc;
-  clear:both;
+  padding:20px;
 }
-#header h1 { float:left; margin-left:20px; font-family: 'Cuprum', arial, serif; }
-#logo {
-  background:transparent url(/images/logo.png) no-repeat;
-  display:block;
-  text-indent:-9999px;
-  width:348px;
-  height:88px;
-  float:left;
+#kml_form {
+	border-bottom:1px solid #ccc;
+	padding:20px;
 }
-#content { padding:10px; font-family: 'Cuprum', arial, serif; font-size:18px; }
+h1, h2, h3, h4 { 
+	font-family: 'Proxima Nova', sans-serif; 
+}
+#content { 
+	font-family: 'Proxima Nova', sans-serif; 
+	font-size:18px; 
+}
+#kml-loader { 
+	width:1px;
+	height:1px;
+	visibility:hidden; 
+}
+#display {
+	position:relative;
+	padding: 20px;
+	top: -40px;
+}
+#map-container {
+	left:0px;
+	top:0px;
+	width:100%;
+}
+#kml_output {
+	display:none;
+}
+#kml_map {
+	height:500px;
+	width:100%;
+}
