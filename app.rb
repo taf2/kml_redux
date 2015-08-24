@@ -1,8 +1,5 @@
 require 'rubygems'
-require 'sinatra/base'
-
-class Application < Sinatra::Base
-  set :public, 'public'
+require 'sinatra'
 
   get '/' do
     erb :index
@@ -22,4 +19,3 @@ class Application < Sinatra::Base
 
     erb :uploaded_kml
   end
-end
