@@ -27,8 +27,14 @@ h1, h2, h3, h4 {
 	top: -40px;
 }
 #map-container {
-	left:0px;top:0px;width:100%
+	left:0px;
+	top:0px;
+	width:100%;
 }
 #kml_output {
 	display:none;
+}
+#kml_map {
+	height:500px;
+	width:100%;
 }

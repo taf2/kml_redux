@@ -64,7 +64,7 @@ function updateCoordinateText(doc,coordinateNode,points) {
       coords.push(point.latitude + "," + point.longitude);
     }
   }
-  var text = doc.createTextNode(coords.join("\n"));
+  var text = doc.createTextNode(coords.join(" "));
   coordinateNode.appendChild(text);
 }
 

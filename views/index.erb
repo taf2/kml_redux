@@ -2,6 +2,7 @@
 <script src="/douglas_peucker.js"></script>
 <script src="/kml_loader.js"></script>
 <script>
+
   function MapControl() {
     this.mapNode = document.getElementById("kml_map");
     this.map = new google.maps.Map(this.mapNode, {zoom:7,
@@ -9,11 +10,11 @@
                                                   mapTypeId: google.maps.MapTypeId.ROADMAP});
     this.polys = [];
   }
+  
   MapControl.prototype = {
     plotPath: function(points) {
       var gpoints = [];
       for (var i = 0, len = points.length; i < len; ++i) {
-        // XXX: this always happens to me i get the longitude and latitude reversed!
         gpoints.push(new google.maps.LatLng(points[i].longitude, points[i].latitude));
       }
       var poly = new google.maps.Polygon({path:gpoints, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2});
@@ -69,7 +70,7 @@
     
   <div id="map-container">
     <h2>Live Preview - <span id="xml-size">Parsing</span> KML</h2>
-    <div id="kml_map" style="height:500px;width:100%"></div>
+    <div id="kml_map"></div>
   </div>
 
   <div id="kml_output">
@@ -77,10 +78,5 @@
     <textarea class="form-control" rows="10" id="kml-reduced"></textarea>
   </div>
 </div>
-
-
-
-
-
 
 
